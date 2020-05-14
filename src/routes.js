@@ -5,6 +5,7 @@ import { StatusBar, View } from 'react-native';
 import Main from './pages/main';
 import Login from './pages/login';
 import Register from './pages/register';
+import Chat from './pages/chat';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +31,11 @@ export default function App() {
             <Stack.Screen name="Register" component={Register} 
             options={{
                 title: 'Register',
+                headerShown: false,
+              }}/>
+            <Stack.Screen name="Chat" component={Chat} 
+            options={{
+                title: 'Chat',
                 headerShown: false,
               }}/>
         </Stack.Navigator>

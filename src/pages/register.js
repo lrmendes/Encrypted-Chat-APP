@@ -1,8 +1,10 @@
 import React, {useState, useEffect} from 'react';
-import { ImageBackground, Keyboard, TouchableOpacity, View, Text, StyleSheet,TextInput, Platform } from 'react-native';
+import { ImageBackground, Keyboard, TouchableOpacity, View, Text, StyleSheet,TextInput, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import auth from '@react-native-firebase/auth';
+
 
 import bgFile from '../assets/bg/bg-login.jpg';
 
@@ -10,8 +12,49 @@ export default function Register({ navigation }) {
     const [display,setDisplay] = useState("");
     const [user,setUser] = useState("");
     const [pass,setPass] = useState("");
+    const [passConfirm,setPassConfirm] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+    function registerUser() {
+        setIsLoading(true);
+
+        if (pass != passConfirm) {
+            setIsLoading(false);
+            return alert("The Passwords does not match. Please try again!");
+        }
+        
+
+        auth()
+        .createUserWithEmailAndPassword(user, pass)
+        .then(authUser => {
+            var user2 = auth().currentUser;
+            if (user2 != null) {
+                user2.sendEmailVerification().then(function() {
+                    alert("Registration Sucessful!! Email de Confirmação Enviado!");
+                    return navigation.navigate('Login');
+                });
+            } else {
+                alert("Registration Sucessful!");
+                return navigation.navigate('Login');
+            }
+        })
+        .catch(error => {
+          if (error.code === 'auth/email-already-in-use') {
+            setIsLoading(false);
+            return alert('That email address is already in use!');
+          }
+      
+          if (error.code === 'auth/invalid-email') {
+            setIsLoading(false);
+            return alert('That email address is invalid!');
+          }
+
+          setIsLoading(false);
+          console.error(error);
+        });
+    }
 
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener(
@@ -48,7 +91,9 @@ export default function Register({ navigation }) {
                     style={classes.inputText}
                     onChangeText={text => setUser(text)}
                     value={user}
-                    placeholder="Username"
+                    placeholder="Email"
+                    keyboardType={"email-address"}
+                    autoCompleteType={"email"}
                 />
                 <TextInput
                     style={classes.inputText}
@@ -57,10 +102,17 @@ export default function Register({ navigation }) {
                     placeholder="Password"
                     secureTextEntry={true}
                 />
-                <TouchableOpacity style={classes.inputButton} onPress={() => navigation.navigate('Home')}>
-                    <Text style = {classes.buttonText}>
-                    Register
-                    </Text>
+                <TextInput
+                    style={classes.inputText}
+                    onChangeText={text => setPassConfirm(text)}
+                    value={passConfirm}
+                    placeholder="Password Confirm"
+                    secureTextEntry={true}
+                />
+                <TouchableOpacity style={classes.inputButton} disabled={isLoading} onPress={() => registerUser() }>
+                    {isLoading 
+                        ? <ActivityIndicator size="small" color='rgba(255, 255, 255,1)' /> 
+                        : <Text style = {classes.buttonText}>Register</Text> }
                 </TouchableOpacity>
                 <View style={!isKeyboardVisible ? classes.container2 : {display: "none"} } > 
                 <Text style={classes.text2}>Already Have an Account?</Text>
@@ -78,9 +130,9 @@ export default function Register({ navigation }) {
 const classes = StyleSheet.create({
     container: {
       flex: 1,
+      paddingBottom: 80,
+      alignItems: 'center',
       justifyContent: 'center',
-      padding: 30,
-      alignItems: 'center'
     },
     container2: {
         position: 'absolute',

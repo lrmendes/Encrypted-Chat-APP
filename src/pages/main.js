@@ -6,7 +6,7 @@ export default class Main extends Component {
     render() {
         return (
             <View>
-                <Text>Conteudo do Main</Text>
+                <Text>Lista de Usuários do APP</Text>
             </View>
         );
     }

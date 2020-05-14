@@ -1,18 +1,59 @@
 import React, {useState, useEffect} from 'react';
-import { ImageBackground, Keyboard, TouchableOpacity, View, Text, StyleSheet,TextInput, Platform } from 'react-native';
+import { ImageBackground, Keyboard, TouchableOpacity, View, Text, StyleSheet,TextInput, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import auth from '@react-native-firebase/auth';
 
 import bgFile from '../assets/bg/bg-login.jpg';
 
 export default function Login({ navigation }) {
     const [user,setUser] = useState("");
     const [pass,setPass] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
+    function loginUser() {
+        setIsLoading(true);
+        console.log(user);
+        console.log(pass);
+
+        auth()
+            .signInWithEmailAndPassword(user, pass)
+                .then(() => {
+                    if (!auth().currentUser.emailVerified) {
+                        auth().signOut().then(() => {
+                            setIsLoading(false);
+                            return alert("Email não confirmado.\nAtive seu email no link de confirmacao!");
+                        });
+                    } else {
+                        setIsLoading(false);
+                        return navigation.navigate('Chat');
+                    }
+                })
+                .catch(error => {
+                    /*auth().fetchProvidersForEmail(user).then(function( result ){
+                        console.log(result)
+                    });*/
+                    setIsLoading(false);      
+                    alert(error);
+                });
+        }
+
     useEffect(() => {
+        /*if (auth().currentUser != null) {
+            console.log(auth().currentUser);
+            if (!auth().currentUser.emailVerified) {
+                auth().signOut().then(() => {
+                    alert("Email não confirmado.\nAtive seu email no link de confirmacao! 1");
+                });
+            } else {
+                navigation.navigate('Chat');
+            }
+        }*/
+
         const keyboardDidShowListener = Keyboard.addListener(
           'keyboardDidShow',
           () => {
@@ -35,13 +76,15 @@ export default function Login({ navigation }) {
   return (
       <ImageBackground source={bgFile} style={classes.bgimage}>
           <View style={classes.container}>
-            <Icon style={classes.icone} name="lock-outline" size={60} color="#006994" />
+            <Icon2 style={classes.icone} name="lock-outline" size={60} color="#006994" />
                 <Text style={classes.titleText}>Login</Text>
                 <TextInput
                     style={classes.inputText}
                     onChangeText={text => setUser(text)}
                     value={user}
-                    placeholder="Username"
+                    placeholder="Email"
+                    keyboardType={"email-address"}
+                    autoCompleteType={"email"}
                 />
                 <TextInput
                     style={classes.inputText}
@@ -50,10 +93,11 @@ export default function Login({ navigation }) {
                     placeholder="Password"
                     secureTextEntry={true}
                 />
-                <TouchableOpacity style={classes.inputButton} onPress={() => navigation.navigate('Home')}>
-                    <Text style = {classes.buttonText}>
-                    Login
-                    </Text>
+                <TouchableOpacity style={classes.inputButton} disabled={isLoading} onPress={() => loginUser()}>
+                {isLoading 
+                        ? <ActivityIndicator size="small" color='rgba(255, 255, 255,1)' /> 
+                        : <Text style = {classes.buttonText}>Login</Text>
+                }
                 </TouchableOpacity>
                 <View style={!isKeyboardVisible ? classes.container2 : {display: "none"} } > 
                 <Text style={classes.text2}>New User?</Text>
