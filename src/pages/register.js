@@ -6,7 +6,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import bgFile from '../assets/bg/bg-login.jpg';
 
-export default function Login({ navigation }) {
+export default function Register({ navigation }) {
+    const [display,setDisplay] = useState("");
     const [user,setUser] = useState("");
     const [pass,setPass] = useState("");
 
@@ -35,8 +36,14 @@ export default function Login({ navigation }) {
   return (
       <ImageBackground source={bgFile} style={classes.bgimage}>
           <View style={classes.container}>
-            <Icon style={classes.icone} name="lock-outline" size={60} color="#006994" />
-                <Text style={classes.titleText}>Login</Text>
+            <Icon style={classes.icone} name="lock-open-outline" size={60} color="#006994" />
+                <Text style={classes.titleText}>Register</Text>
+                <TextInput
+                    style={classes.inputText}
+                    onChangeText={text => setDisplay(text)}
+                    value={display}
+                    placeholder="Display Name"
+                />
                 <TextInput
                     style={classes.inputText}
                     onChangeText={text => setUser(text)}
@@ -52,14 +59,14 @@ export default function Login({ navigation }) {
                 />
                 <TouchableOpacity style={classes.inputButton} onPress={() => navigation.navigate('Home')}>
                     <Text style = {classes.buttonText}>
-                    Login
+                    Register
                     </Text>
                 </TouchableOpacity>
                 <View style={!isKeyboardVisible ? classes.container2 : {display: "none"} } > 
-                <Text style={classes.text2}>New User?</Text>
-                <TouchableOpacity style={classes.inputButton2} onPress={() => navigation.navigate('Register')}>
+                <Text style={classes.text2}>Already Have an Account?</Text>
+                <TouchableOpacity style={classes.inputButton2} onPress={() => navigation.navigate('Login')}>
                     <Text style = {classes.buttonText}>
-                    Register Now
+                    Login Now
                     </Text>
                 </TouchableOpacity>
                 </View>

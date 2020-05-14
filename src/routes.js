@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar, View } from 'react-native';
 import Main from './pages/main';
 import Login from './pages/login';
+import Register from './pages/register';
 
 const Stack = createStackNavigator();
 
@@ -26,6 +27,11 @@ export default function App() {
                     fontWeight: 'bold',
                   },
             }}/>
+            <Stack.Screen name="Register" component={Register} 
+            options={{
+                title: 'Register',
+                headerShown: false,
+              }}/>
         </Stack.Navigator>
       </NavigationContainer>
     );
