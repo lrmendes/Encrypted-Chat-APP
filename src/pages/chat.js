@@ -2,12 +2,15 @@ import React, { Component, useState, useEffect, useCallback } from 'react';
 
 import { View, Text, StyleSheet, FlatList, TextInput, Button } from 'react-native';
 
+
 const DATA = [
     { id: 1, message: 'Hello', side: 'left' }, 
     { id: 2, message: 'Hi!', side: 'right' },
     { id: 3, message: 'Hi!', side: 'right' },
     { id: 4, message: 'Se chegou aqui voce esta logado!', side: 'right' }
 ];
+
+
 
 export default function Chat() {
   const [message, setMessage] = useState('');

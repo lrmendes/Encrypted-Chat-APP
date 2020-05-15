@@ -10,6 +10,7 @@ import Chat from './pages/chat';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { CommonActions } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
+import database from '@react-native-firebase/database';
 
 export default function App() {
 
@@ -25,8 +26,20 @@ export default function App() {
     ],
     { cancelable: true }
   );
-
+  
   function logoutUser(navigation) {
+    try {
+      const userId = auth().currentUser.uid;
+      const reference = database().ref(`/online/${auth().currentUser.displayName}`);
+      // Remove the node whenever the client disconnects
+      reference.remove()
+    } catch(error) {
+      console.log("Error on remove online reference");
+      console.log("-----------------------------------");
+      console.log(error);
+      console.log("-----------------------------------");
+    }
+
     auth().signOut().then(() => {
       navigation.dispatch(
         CommonActions.reset({
