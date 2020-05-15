@@ -1,12 +1,11 @@
 import React, {useState, useEffect} from 'react';
-import { ImageBackground, Keyboard, TouchableOpacity, View, Text, StyleSheet,TextInput, ActivityIndicator } from 'react-native';
+import { ImageBackground, Alert, Keyboard, TouchableOpacity, View, Text, StyleSheet,TextInput, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import auth from '@react-native-firebase/auth';
 
-
-import bgFile from '../assets/bg/bg-login.jpg';
+import bgFile from '../assets/bg/bg-register2.jpg';
 
 export default function Register({ navigation }) {
     const [display,setDisplay] = useState("");
@@ -17,12 +16,31 @@ export default function Register({ navigation }) {
 
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
+    const createTwoButtonAlert = (title,msg) =>
+    Alert.alert(
+        title,
+        msg,
+      [
+        { text: "OK", onPress: () => {setPass(""); setPassConfirm("")} }
+      ],
+      { cancelable: false }
+    );
+
     function registerUser() {
         setIsLoading(true);
 
         if (pass != passConfirm) {
             setIsLoading(false);
-            return alert("The Passwords does not match. Please try again!");
+            return createTwoButtonAlert("ERROR","The Passwords does not match. Please try again!");
+        }
+        if (pass == '' || user == '' || display == '') {
+            setIsLoading(false);
+            return createTwoButtonAlert("ERROR","Empty Field Found!");
+        }
+
+        if (pass.length < 8) {
+            setIsLoading(false);
+            return createTwoButtonAlert("ERROR","Password must be have at least 8 characters.");
         }
         
 
@@ -31,9 +49,13 @@ export default function Register({ navigation }) {
         .then(authUser => {
             var user2 = auth().currentUser;
             if (user2 != null) {
-                user2.sendEmailVerification().then(function() {
-                    alert("Registration Sucessful!! Email de Confirmação Enviado!");
-                    return navigation.navigate('Login');
+                user2.updateProfile({
+                    displayName: display,
+                }).then(function() {
+                    user2.sendEmailVerification().then(function() {
+                        createTwoButtonAlert("Sucess","Registration Sucessful!!\nNow You need to confirm your email.\nWe Sent a confirmation email.");
+                        return navigation.navigate('Login');
+                    });
                 });
             } else {
                 alert("Registration Sucessful!");
@@ -43,12 +65,12 @@ export default function Register({ navigation }) {
         .catch(error => {
           if (error.code === 'auth/email-already-in-use') {
             setIsLoading(false);
-            return alert('That email address is already in use!');
+            return createTwoButtonAlert('ERROR','That email address is already in use!');
           }
       
           if (error.code === 'auth/invalid-email') {
             setIsLoading(false);
-            return alert('That email address is invalid!');
+            return createTwoButtonAlert('ERROR','That email address is invalid!');
           }
 
           setIsLoading(false);
@@ -79,13 +101,14 @@ export default function Register({ navigation }) {
   return (
       <ImageBackground source={bgFile} style={classes.bgimage}>
           <View style={classes.container}>
-            <Icon style={classes.icone} name="lock-open-outline" size={60} color="#006994" />
+            <Icon style={classes.icone} name="lock-open-outline" size={60} color="#fff" />
                 <Text style={classes.titleText}>Register</Text>
                 <TextInput
                     style={classes.inputText}
                     onChangeText={text => setDisplay(text)}
                     value={display}
                     placeholder="Display Name"
+                    placeholderTextColor='rgba(255,255,255,0.5)'
                 />
                 <TextInput
                     style={classes.inputText}
@@ -93,6 +116,7 @@ export default function Register({ navigation }) {
                     value={user}
                     placeholder="Email"
                     keyboardType={"email-address"}
+                    placeholderTextColor='rgba(255,255,255,0.5)'
                     autoCompleteType={"email"}
                 />
                 <TextInput
@@ -100,12 +124,14 @@ export default function Register({ navigation }) {
                     onChangeText={text => setPass(text)}
                     value={pass}
                     placeholder="Password"
+                    placeholderTextColor='rgba(255,255,255,0.5)' 
                     secureTextEntry={true}
                 />
                 <TextInput
                     style={classes.inputText}
                     onChangeText={text => setPassConfirm(text)}
                     value={passConfirm}
+                    placeholderTextColor='rgba(255,255,255,0.5)'
                     placeholder="Password Confirm"
                     secureTextEntry={true}
                 />
@@ -140,7 +166,7 @@ const classes = StyleSheet.create({
         alignItems: 'center',
     },
     icone: {
-        opacity: 0.7,
+        opacity: 0.4,
     },
     bgimage: {
         flex: 1,
@@ -151,17 +177,18 @@ const classes = StyleSheet.create({
     titleText: {
         fontSize: 24,
         marginBottom: 10,
-        color: 'rgba(0, 105, 148,0.7)',
+        color: 'rgba(255, 255, 255,0.5)',
     },
     inputText: {
         marginTop: 15,
         height: 40,
         width: 250,
         maxWidth: '80%',
-        borderColor: 'rgba(200,200,200,0.5)',
+        borderColor: 'rgba(200,200,200,0.7)',
+        backgroundColor: 'rgba(200,200,200,0.2)',
         borderRadius: 5,
         borderWidth: 1,
-        color: 'rgba(0,0,0,0.5)',
+        color: 'rgba(255,255,255,1)',
         opacity: 0.9,
         textAlign: 'center',
     },
@@ -175,7 +202,7 @@ const classes = StyleSheet.create({
         borderRadius: 5,
         display: 'flex',
         justifyContent: 'center',
-        opacity: 0.5,
+        opacity: 0.9,
         alignItems: 'center'
     },
     text2: {
@@ -191,7 +218,7 @@ const classes = StyleSheet.create({
         borderRadius: 5,
         display: 'flex',
         justifyContent: 'center',
-        opacity: 0.5,
+        opacity: 0.7,
         alignItems: 'center'
     },
     buttonText: {

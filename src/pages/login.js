@@ -1,10 +1,12 @@
 import React, {useState, useEffect} from 'react';
-import { ImageBackground, Keyboard, TouchableOpacity, View, Text, StyleSheet,TextInput, ActivityIndicator } from 'react-native';
+import { ImageBackground, Keyboard, TouchableOpacity, View, Text, StyleSheet,TextInput, ActivityIndicator, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import auth from '@react-native-firebase/auth';
+import { CommonActions } from '@react-navigation/native';
+
 
 import bgFile from '../assets/bg/bg-login.jpg';
 
@@ -15,10 +17,23 @@ export default function Login({ navigation }) {
 
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
+    const createTwoButtonAlert = (title,msg) =>
+    Alert.alert(
+        title,
+        msg,
+      [
+        { text: "OK", onPress: () => setPass("") }
+      ],
+      { cancelable: false }
+    );
+
     function loginUser() {
         setIsLoading(true);
-        console.log(user);
-        console.log(pass);
+
+        if (user == "" || pass == "") {
+            setIsLoading(false);
+            return createTwoButtonAlert('Error','Empty Field!');
+        }
 
         auth()
             .signInWithEmailAndPassword(user, pass)
@@ -26,33 +41,44 @@ export default function Login({ navigation }) {
                     if (!auth().currentUser.emailVerified) {
                         auth().signOut().then(() => {
                             setIsLoading(false);
-                            return alert("Email não confirmado.\nAtive seu email no link de confirmacao!");
+                            return createTwoButtonAlert('Error','This email has not been verified!\nPlease, confirm this email by the verify mail!');
                         });
                     } else {
                         setIsLoading(false);
-                        return navigation.navigate('Chat');
+                        return navigation.navigate('Home');
                     }
                 })
                 .catch(error => {
                     /*auth().fetchProvidersForEmail(user).then(function( result ){
                         console.log(result)
                     });*/
-                    setIsLoading(false);      
+                    if (error == 'auth/wrong-password') {
+                        return createTwoButtonAlert('Error','Wrong Password!');
+                    }
+                    if (error == 'auth/invalid-email') {
+                        return createTwoButtonAlert('Error','Invalid Email!');
+                    }
+                    setIsLoading(false);     
+                    console.log(error); 
                     alert(error);
                 });
         }
 
     useEffect(() => {
-        /*if (auth().currentUser != null) {
-            console.log(auth().currentUser);
+        if (auth().currentUser != null) {
             if (!auth().currentUser.emailVerified) {
                 auth().signOut().then(() => {
-                    alert("Email não confirmado.\nAtive seu email no link de confirmacao! 1");
+                    console.log("Email nao verificado - deslogou usuario");
                 });
             } else {
-                navigation.navigate('Chat');
+                navigation.dispatch(
+                    CommonActions.reset({
+                      index: 0,
+                      routes: [
+                        { name: 'Home' },
+                    ],}))
             }
-        }*/
+        }
 
         const keyboardDidShowListener = Keyboard.addListener(
           'keyboardDidShow',
