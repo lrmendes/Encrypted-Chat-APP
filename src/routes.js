@@ -28,7 +28,20 @@ export default function App() {
   );
   
   function logoutUser(navigation) {
-    try {
+    const userId = auth().currentUser.uid;
+      const reference = database().ref(`/online/${auth().currentUser.displayName}`);
+      // Remove the node whenever the client disconnects
+      reference.remove().then( () => 
+        auth().signOut().then(() => {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [
+                { name: 'Login' },
+            ],}));
+        })
+      );
+    /*try {
       const userId = auth().currentUser.uid;
       const reference = database().ref(`/online/${auth().currentUser.displayName}`);
       // Remove the node whenever the client disconnects
@@ -40,15 +53,15 @@ export default function App() {
       console.log("-----------------------------------");
     }
 
-    auth().signOut().then(() => {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [
-            { name: 'Login' },
-        ],}));
-    })
-  }
+    try {
+
+  } catch (error) {
+    console.log("Error on logout");
+    console.log("-----------------------------------");
+    console.log(error);
+    console.log("-----------------------------------");
+  }*/
+}
 
     return (
         <NavigationContainer>
@@ -60,7 +73,7 @@ export default function App() {
               }}/>
             <Stack.Screen name="Home" component={Main} options={({ navigation }) => ({
                 headerStyle: {
-                    backgroundColor: '#f4511e',
+                    backgroundColor: 'rgba(0,0,0,1)',
                   },
                   title: 'Tela Principal',
                   headerTintColor: '#fff',
@@ -81,8 +94,14 @@ export default function App() {
               }}/>
             <Stack.Screen name="Chat" component={Chat} 
             options={{
-                title: 'Chat',
-                headerShown: false,
+              headerStyle: {
+                backgroundColor: 'rgba(0,0,0,1)',
+              },
+              title: 'Tela De Chat',
+              headerTintColor: '#fff',
+              headerTitleStyle: {
+                fontWeight: 'bold',
+              },
               }}/>
         </Stack.Navigator>
       </NavigationContainer>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
-
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import bgFile from '../assets/bg/bg-register2.jpg';
 
 export default function Main({ navigation }) {
@@ -52,17 +52,25 @@ export default function Main({ navigation }) {
         <View style={styles.container}>
             <Text style={styles.welcome}>Bem Vindo, {auth().currentUser == null ? "none" : auth().currentUser.displayName}</Text>
             <Text style={styles.online}>Usuarios Online: {Object.keys(userList).length} </Text>
+            <View style={styles.list}>
             { userList != null 
-            ? Object.keys(userList).map((user,index) => {
-                return (
-                user == auth().currentUser.displayName 
-                ? null
-                :   <View key={index}>
-                        <Text style={styles.userText}>{user}</Text>
-                    </View>
-                )
-            })
-            : <Text style={styles.online}> Nenhum Usuário Online </Text> }
+                ? Object.keys(userList).map((user,index) => {
+                    return (
+                    user == auth().currentUser.displayName 
+                    ? null
+                    :   <View style={styles.row} key={index}>
+                            <View style={styles.rowleft}>
+                                <Icon style={styles.icone} name="account-circle" size={50} color="#FFFFFF" />
+                                <Text style={styles.userText}>{user}</Text>
+                            </View>
+                            <TouchableOpacity style={styles.rowBtn} onPress={() => navigation.navigate('Chat')}>
+                                <Icon name="arrow-right-circle" size={60} color="rgba(0,255,255,0.7)" />
+                            </TouchableOpacity>
+                        </View>
+                    )
+                })
+                : <Text style={styles.online}> Nenhum Usuário Online </Text> }
+            </View>
         </View>
         </ImageBackground>
     );
@@ -71,8 +79,36 @@ export default function Main({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 30,
+        padding: 10,
         alignItems: 'center',
+    },
+    list: {
+        flex: 1,
+        height: '100%',
+        width: '100%',
+        marginTop: 20,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 15,
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: 100,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 5,
+    },
+    rowleft: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    rowBtn: {
+        marginRight: 15,
+    },
+    icone: {
+        marginLeft: 15,
     },
     online: {
         marginTop: 15,
@@ -80,14 +116,12 @@ const styles = StyleSheet.create({
         fontSize: 20,
         color: '#00FF00',
     },
-    userText: {        
-        marginTop: 10,
+    userText: {       
         marginLeft: 25,
-        fontSize: 25,
-        color: '#00FFFF',
+        fontSize: 20,
+        color: '#FFFFFF',
     },
     welcome: {
-        marginTop: 40,
         fontSize: 20,
         color: '#FFFFFF',
     },
