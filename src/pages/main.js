@@ -6,7 +6,7 @@ import database from '@react-native-firebase/database';
 import bgFile from '../assets/bg/bg-register2.jpg';
 
 export default function Main({ navigation }) {
-    const [userList,setUserList] = useState([]);
+    const [userList,setUserList] = useState({});
 
     useEffect(() => {
         try {
@@ -36,41 +36,44 @@ export default function Main({ navigation }) {
             .ref('/online')
             .on('value', snapshot => {
                 if (snapshot.val() != null) {
-                    if (userList.indexOf(snapshot.val()) == -1) {
-                        console.log("Entrou ake");
-                        setUserList([...userList, snapshot.val()]);
-                    } else {
-                        console.log("Onde foi parar isso?");
-                    }
-                    console.log('User data: ', snapshot.val());
-                    console.log(userList);
+                    setUserList(snapshot.val());
+                    console.log('\n\nUser data: ', snapshot.val());
                 }
             });
         } catch (erorr) {
-            console.log("Erro ao obter usuarios online");
+            console.log("\nErro ao obter usuarios online");
         }
 
       }, [auth().currentUser.uid]);
 
+
     return (
         <ImageBackground source={bgFile} style={styles.bgimage}>
-        <View>
-            <Text>Lista de Usuários do APP</Text>
-            <Text>Bem Vindo, {auth().currentUser == null ? "none" : auth().currentUser.displayName}</Text>
-            <Text style={styles.online}>Usuarios Online: </Text>
-            {userList.map((user, index) => {
+        <View style={styles.container}>
+            <Text style={styles.welcome}>Bem Vindo, {auth().currentUser == null ? "none" : auth().currentUser.displayName}</Text>
+            <Text style={styles.online}>Usuarios Online: {Object.keys(userList).length} </Text>
+            { userList != null 
+            ? Object.keys(userList).map((user,index) => {
                 return (
-                <View key={index}>
-                    <Text style={styles.userText}>{JSON.stringify(user)}</Text>
-                </View>
+                user == auth().currentUser.displayName 
+                ? null
+                :   <View key={index}>
+                        <Text style={styles.userText}>{user}</Text>
+                    </View>
                 )
-            })}
+            })
+            : <Text style={styles.online}> Nenhum Usuário Online </Text> }
         </View>
         </ImageBackground>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 30,
+        alignItems: 'center',
+    },
     online: {
         marginTop: 15,
         marginLeft: 20,
@@ -80,8 +83,13 @@ const styles = StyleSheet.create({
     userText: {        
         marginTop: 10,
         marginLeft: 25,
-        fontSize: 18,
+        fontSize: 25,
         color: '#00FFFF',
+    },
+    welcome: {
+        marginTop: 40,
+        fontSize: 20,
+        color: '#FFFFFF',
     },
     bgimage: {
         flex: 1,
