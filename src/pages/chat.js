@@ -1,16 +1,7 @@
 import React, { Component, useState, useEffect, useCallback } from 'react';
-
+import auth from '@react-native-firebase/auth';
+import database from '@react-native-firebase/database';
 import { View, Text, StyleSheet, FlatList, TextInput, Button } from 'react-native';
-
-
-const DATA = [
-    /*{ id: 1, message: 'Hello', side: 'left' }, 
-    { id: 2, message: 'Hi!', side: 'right' },
-    { id: 3, message: 'Hi!', side: 'right' },
-    { id: 4, message: 'Se chegou aqui voce esta logado!', side: 'right' }*/
-];
-
-
 
 export default function Chat({route, navigation}) {
   const user = route.params;
@@ -19,6 +10,7 @@ export default function Chat({route, navigation}) {
 
   const [message, setMessage] = useState({});
   const [text, setText] = useState("");
+  const [data, setData] = useState([]);
 
   useEffect(() => {
     try {
@@ -28,6 +20,8 @@ export default function Chat({route, navigation}) {
             if (snapshot.val() != null) {
                 setMessage(snapshot.val());
                 console.log('\n\nMessage data: ', snapshot.val());
+                setData(Object.keys(snapshot.val()));
+                console.log('\n\nMessage list: ', snapshot.val());
                 database().ref(`/messages/${auth().currentUser.uid}/${user.user}`).remove().then( () => {} );
             }
         });
@@ -38,29 +32,18 @@ export default function Chat({route, navigation}) {
 
   function sendMessage() {
     if (text != "" && text != null) {
-      let message = {}
-
       // UserMsg
       database()
         .ref(`/messages/${user.user}/${auth().currentUser.uid}`)
-        .on('value', snapshot => {
-            if (snapshot.val() != null) {
-                setMessage(snapshot.val());
-                console.log('\n\nMessage data: ', snapshot.val());
-                //database().ref(`/messages/${user.user}/${auth().currentUser.uid}`).remove().then( () => {} );
-            }
-        });
-
-      // Yourself
-      database()
-        .ref(`/messages/${auth().currentUser.uid}/${user.user}`)
-        .on('value', snapshot => {
-            if (snapshot.val() != null) {
-                setMessage(snapshot.val());
-                console.log('\n\nMessage data: ', snapshot.val());
-                //database().ref(`/messages/${auth().currentUser.uid}/${user.user}`).remove().then( () => {} );
-            }
-        });
+        .push({ you: text}).then( () => {
+          // Yourself
+          database()
+            .ref(`/messages/${auth().currentUser.uid}/${user.user}`)
+            .push({ me: text}).then( () => {
+              setText("");
+              console.log("Mensagem enviada");
+            })
+        })
     }
   }
 
@@ -69,7 +52,7 @@ export default function Chat({route, navigation}) {
             <View style={styles.messagesContainer}>
               <FlatList
                 inverted
-                data={DATA}
+                data={data}
                 keyExtractor={function (item) {
                   return item.id
                 }}
@@ -78,7 +61,7 @@ export default function Chat({route, navigation}) {
                     <View style={item.side == 'left' ? stylesLeft.container : flattenedStyles.container}>
                     <View style={item.side == 'left' ? stylesLeft.textContainer : flattenedStyles.textContainer}>
                       <Text style={item.side == 'left' ? flattenedStyles.leftText : flattenedStyles.rightText}>
-                        {item.message}
+                        {item.me}
                       </Text>
                     </View>
                   </View>
@@ -91,7 +74,7 @@ export default function Chat({route, navigation}) {
 
             <View style={stylesInput.container}>
               <View style={stylesInput.inputContainer}>
-                  <TextInput style={stylesInput.input} value={text} onChangeText={setText} placeholder="Write you message" />
+                  <TextInput style={stylesInput.input} value={text} onChangeText={(e) => setText(e)} placeholder="Write you message" />
               </View>
               <Button title="Send" onPress={sendMessage} />
             </View>
