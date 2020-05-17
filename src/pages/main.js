@@ -14,7 +14,7 @@ export default function Main({ navigation }) {
             const userId = auth().currentUser.uid;
             const reference = database().ref(`/online/${auth().currentUser.displayName}`);
             // Set the /users/:userId value to true
-            reference.set(true).then(() => console.log('Online presence set'));
+            reference.set({ user: auth().currentUser.uid, name: auth().currentUser.displayName }).then(() => console.log('Online presence set'));
         } catch (error) {
             //console.log("Erro ao buscar online");
         }
@@ -58,12 +58,12 @@ export default function Main({ navigation }) {
                     return (
                     user == auth().currentUser.displayName 
                     ? null
-                    :   <View style={styles.row} key={index}>
+                    :    <View style={styles.row} key={index}>
                             <View style={styles.rowleft}>
                                 <Icon style={styles.icone} name="account-circle" size={50} color="#FFFFFF" />
-                                <Text style={styles.userText}>{user}</Text>
+                                <Text style={styles.userText}>{userList[user].name}</Text>
                             </View>
-                            <TouchableOpacity style={styles.rowBtn} onPress={() => navigation.navigate('Chat')}>
+                            <TouchableOpacity style={styles.rowBtn} onPress={() => navigation.navigate('Chat', userList[user])}>
                                 <Icon name="arrow-right-circle" size={60} color="rgba(0,255,255,0.7)" />
                             </TouchableOpacity>
                         </View>

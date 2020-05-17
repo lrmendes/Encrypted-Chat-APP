@@ -4,23 +4,65 @@ import { View, Text, StyleSheet, FlatList, TextInput, Button } from 'react-nativ
 
 
 const DATA = [
-    { id: 1, message: 'Hello', side: 'left' }, 
+    /*{ id: 1, message: 'Hello', side: 'left' }, 
     { id: 2, message: 'Hi!', side: 'right' },
     { id: 3, message: 'Hi!', side: 'right' },
-    { id: 4, message: 'Se chegou aqui voce esta logado!', side: 'right' }
+    { id: 4, message: 'Se chegou aqui voce esta logado!', side: 'right' }*/
 ];
 
 
 
-export default function Chat() {
-  const [message, setMessage] = useState('');
+export default function Chat({route, navigation}) {
+  const user = route.params;
+  //console.log("Navigation: ",user);
+  navigation.setOptions({ title: user.name })
 
-  const handlePress = useCallback(
-    function () {
-      // todo this
-    },
-    [message]
-  )
+  const [message, setMessage] = useState({});
+  const [text, setText] = useState("");
+
+  useEffect(() => {
+    try {
+        database()
+        .ref(`/messages/${auth().currentUser.uid}/${user.user}`)
+        .on('value', snapshot => {
+            if (snapshot.val() != null) {
+                setMessage(snapshot.val());
+                console.log('\n\nMessage data: ', snapshot.val());
+                database().ref(`/messages/${auth().currentUser.uid}/${user.user}`).remove().then( () => {} );
+            }
+        });
+    } catch (erorr) {
+        console.log("\nErro ao obter usuarios online");
+    }
+  }, [auth().currentUser.uid]);
+
+  function sendMessage() {
+    if (text != "" && text != null) {
+      let message = {}
+
+      // UserMsg
+      database()
+        .ref(`/messages/${user.user}/${auth().currentUser.uid}`)
+        .on('value', snapshot => {
+            if (snapshot.val() != null) {
+                setMessage(snapshot.val());
+                console.log('\n\nMessage data: ', snapshot.val());
+                //database().ref(`/messages/${user.user}/${auth().currentUser.uid}`).remove().then( () => {} );
+            }
+        });
+
+      // Yourself
+      database()
+        .ref(`/messages/${auth().currentUser.uid}/${user.user}`)
+        .on('value', snapshot => {
+            if (snapshot.val() != null) {
+                setMessage(snapshot.val());
+                console.log('\n\nMessage data: ', snapshot.val());
+                //database().ref(`/messages/${auth().currentUser.uid}/${user.user}`).remove().then( () => {} );
+            }
+        });
+    }
+  }
 
         return (
             <View>
@@ -49,9 +91,9 @@ export default function Chat() {
 
             <View style={stylesInput.container}>
               <View style={stylesInput.inputContainer}>
-                  <TextInput style={stylesInput.input} value={message} onChangeText={setMessage} placeholder="Write you message" />
+                  <TextInput style={stylesInput.input} value={text} onChangeText={setText} placeholder="Write you message" />
               </View>
-              <Button title="Send" onPress={handlePress} />
+              <Button title="Send" onPress={sendMessage} />
             </View>
 
             </View>

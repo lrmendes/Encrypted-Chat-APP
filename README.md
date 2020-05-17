@@ -4,7 +4,7 @@ A complete real time chat app built in React Native with Firebase Cloud.
 ### Features
 - Realtime Database (Online Users Only).
 - Authentication with Email Verification.
-- End To End Cryptography Chat Messages.
+- End To End Encrypted Chat Messages.
 
 ### How it works?
 
