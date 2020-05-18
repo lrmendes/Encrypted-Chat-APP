@@ -2,9 +2,14 @@ import React, { Component, useState, useEffect, useCallback } from 'react';
 import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
 import { View, Text, StyleSheet, FlatList, TextInput, Button } from 'react-native';
+import RNCryptor from 'react-native-rncryptor';
+
 
 export default function Chat({route, navigation}) {
   const user = route.params;
+  let order = [user.user, auth().currentUser.uid];
+  order.sort();
+
   //console.log("Navigation: ",user);
   navigation.setOptions({ title: user.name })
 
@@ -15,13 +20,13 @@ export default function Chat({route, navigation}) {
   useEffect(() => {
     try {
         database()
-        .ref(`/messages/${auth().currentUser.displayName}/${user.name}`)
+        .ref(`/messages/${order[0]}_${order[1]}`)
         .on('value', snapshot => {
             if (snapshot.val() != null) {
                 setMessage(snapshot.val());
                 setData(Object.keys(snapshot.val()));
                 //console.log('\n\nMessage list: ', snapshot.val());
-                //database().ref(`/messages/${auth().currentUser.displayName}/${user.name}`).set(null).onComplete( () => {console.log("\nCompletou Remocao")} );
+                //database().ref(`/messages/${auth().currentUser.displayName}/${user.name}`).set(null);
           }});
     } catch (erorr) {
         console.log("\nErro ao obter usuarios online");
@@ -30,19 +35,18 @@ export default function Chat({route, navigation}) {
 
   function sendMessage() {
     if (text != "" && text != null) {
-      // UserMsg
-      database()
-        .ref(`/messages/${user.name}/${auth().currentUser.displayName}`)
-        .push({ sender: auth().currentUser.displayName , message: text}).then( () => {
-          // Yourself
-          database()
-            .ref(`/messages/${auth().currentUser.displayName}/${user.name}`)
-            .push({ sender: auth().currentUser.displayName , message: text}).then( () => {
+      let encrypted = text;
+      RNCryptor.encrypt(text, 'password').then((encryptedbase64)=>{
+        ///encrypted = encryptedbase64;
+
+        // UserMsg
+        database()
+        .ref( `/messages/${order[0]}_${order[1]}`)
+        .push({ sender: auth().currentUser.uid , message: encrypted}).then( () => {
               //console.log("Mensagem enviada: ", { sender: auth().currentUser.displayName , message: text});
               setText("");
-              
             })
-        })
+      });
     }
   }
 
@@ -58,9 +62,14 @@ export default function Chat({route, navigation}) {
                 renderItem={function ({ item }) {
                   //console.log( "User: ",auth().currentUser.displayName, " - ", message);
                   return (
-                    <View style={ message[item].sender == auth().currentUser.displayName ? stylesLeft.container : flattenedStyles.container}>
-                    <View style={ message[item].sender == auth().currentUser.displayName ? stylesLeft.textContainer : flattenedStyles.textContainer}>
-                      <Text style={ message[item].sender == auth().currentUser.displayName ? flattenedStyles.leftText : flattenedStyles.rightText}>
+                    <View style={ message[item].sender != auth().currentUser.uid ? stylesLeft.container : flattenedStyles.container}>
+                    <View style={ message[item].sender != auth().currentUser.uid ? stylesLeft.textContainer : flattenedStyles.textContainer}>
+                        { message[item].sender == auth().currentUser.uid 
+                        ? null 
+                        : <Text style={ message[item].sender == auth().currentUser.uid ? flattenedStyles.leftTextBold : flattenedStyles.rightTextBold}> { user.name }: </Text>
+                        }
+
+                      <Text style={ message[item].sender != auth().currentUser.uid ? flattenedStyles.leftText : flattenedStyles.rightText}>
                         { message[item].message }
                       </Text>
                     </View>
@@ -131,10 +140,10 @@ const stylesLeft = StyleSheet.create({
       justifyContent: 'flex-start'
     },
     textContainer: {
-      width: 160,
+      width: '80%',
       backgroundColor: '#B4B4B4',
   
-      borderRadius: 40,
+      borderRadius: 15,
       paddingHorizontal: 15,
       paddingVertical: 12,
       marginLeft: 10
@@ -150,10 +159,14 @@ const stylesLeft = StyleSheet.create({
       textAlign: 'left'
     },
     rightText: {
-      textAlign: 'right'
+      textAlign: 'left'
     },
     text: {
       fontSize: 12
+    },
+    textBold: {
+      fontSize: 12,
+      fontWeight: "bold"
     }
   })
   
@@ -161,5 +174,8 @@ const stylesLeft = StyleSheet.create({
     container: StyleSheet.flatten([stylesLeft.container, stylesLeft.rightContainer]),
     textContainer: StyleSheet.flatten([stylesLeft.textContainer, stylesLeft.rightTextContainer]),
     leftText: StyleSheet.flatten([stylesLeft.leftText, stylesLeft.text]),
-    rightText: StyleSheet.flatten([stylesLeft.rightText, stylesLeft.text])
+    rightText: StyleSheet.flatten([stylesLeft.rightText, stylesLeft.text]),
+
+    leftTextBold: StyleSheet.flatten([stylesLeft.leftText, stylesLeft.textBold]),
+    rightTextBold: StyleSheet.flatten([stylesLeft.rightText, stylesLeft.textBold])
   }

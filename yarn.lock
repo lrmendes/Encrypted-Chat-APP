@@ -5662,6 +5662,11 @@ react-native-reanimated@^1.8.0:
   dependencies:
     fbjs "^1.0.0"
 
+react-native-rncryptor@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-native-rncryptor/-/react-native-rncryptor-1.0.2.tgz#28976c0a0a963ddf0cfdedd6ad9d75c7770d372a"
+  integrity sha512-ChQ6wjuDx1vkvDXKPse4MOIGPKAEon8vvjR+DeKkvPBRgTDDvfAwEuuCsJLAT67ibPi4lRcwIR90Y2auxoZkXA==
+
 react-native-safe-area-context@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-1.0.0.tgz#8b4d79b06d6a9ed5ff3b2c3f0ba25d85538a3149"
