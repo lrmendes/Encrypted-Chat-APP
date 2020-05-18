@@ -20,4 +20,4 @@ A complete real time chat app built in React Native with Firebase Cloud.
 <img src="examples/ex3.jpeg" alt="drawing" width="300"/>   <img src="examples/ex4.jpeg" alt="drawing" width="300"/>
 
 ##### Real View
-<img src="examples/ex4.gif" alt="drawing" width="300"/>
+<img src="examples/ex3.gif" alt="drawing" width="300"/>
