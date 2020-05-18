@@ -1,23 +1,23 @@
-### The SaaS APP
+## The SaaS APP
 A complete real time chat app built in React Native with Firebase Cloud.
 
-### Features
+## Features
 - Realtime Database (Online Users Only).
 - Authentication with Email Verification.
 - End To End Encrypted Chat Messages.
 
-### How it works?
+## How it works?
 
 ...
 
 
-### Interfaces:
+## Interfaces:
 
-##### Register Screen & Main Screen
+### Register Screen & Main Screen
 <img src="examples/ex1.jpg" alt="drawing" width="300"/>   <img src="examples/ex2.jpg" alt="drawing" width="300"/>
-
-##### Decrypted / Encrypted Chat - AES 256
+  
+### Decrypted / Encrypted Chat - AES 256
 <img src="examples/ex3.jpeg" alt="drawing" width="300"/>   <img src="examples/ex4.jpeg" alt="drawing" width="300"/>
-
-##### Real View
+  
+### Real View
 <img src="examples/ex3.gif" alt="drawing" width="300"/>
