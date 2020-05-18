@@ -15,33 +15,32 @@ export default function Chat({route, navigation}) {
   useEffect(() => {
     try {
         database()
-        .ref(`/messages/${auth().currentUser.uid}/${user.user}`)
+        .ref(`/messages/${auth().currentUser.displayName}/${user.name}`)
         .on('value', snapshot => {
             if (snapshot.val() != null) {
                 setMessage(snapshot.val());
-                console.log('\n\nMessage data: ', snapshot.val());
                 setData(Object.keys(snapshot.val()));
-                console.log('\n\nMessage list: ', snapshot.val());
-                database().ref(`/messages/${auth().currentUser.uid}/${user.user}`).remove().then( () => {} );
-            }
-        });
+                //console.log('\n\nMessage list: ', snapshot.val());
+                //database().ref(`/messages/${auth().currentUser.displayName}/${user.name}`).set(null).onComplete( () => {console.log("\nCompletou Remocao")} );
+          }});
     } catch (erorr) {
         console.log("\nErro ao obter usuarios online");
     }
-  }, [auth().currentUser.uid]);
+  }, [auth().currentUser.displayName]);
 
   function sendMessage() {
     if (text != "" && text != null) {
       // UserMsg
       database()
-        .ref(`/messages/${user.user}/${auth().currentUser.uid}`)
-        .push({ you: text}).then( () => {
+        .ref(`/messages/${user.name}/${auth().currentUser.displayName}`)
+        .push({ sender: auth().currentUser.displayName , message: text}).then( () => {
           // Yourself
           database()
-            .ref(`/messages/${auth().currentUser.uid}/${user.user}`)
-            .push({ me: text}).then( () => {
+            .ref(`/messages/${auth().currentUser.displayName}/${user.name}`)
+            .push({ sender: auth().currentUser.displayName , message: text}).then( () => {
+              //console.log("Mensagem enviada: ", { sender: auth().currentUser.displayName , message: text});
               setText("");
-              console.log("Mensagem enviada");
+              
             })
         })
     }
@@ -54,17 +53,18 @@ export default function Chat({route, navigation}) {
                 inverted
                 data={data}
                 keyExtractor={function (item) {
-                  return item.id
+                  return item
                 }}
                 renderItem={function ({ item }) {
+                  //console.log( "User: ",auth().currentUser.displayName, " - ", message);
                   return (
-                    <View style={item.side == 'left' ? stylesLeft.container : flattenedStyles.container}>
-                    <View style={item.side == 'left' ? stylesLeft.textContainer : flattenedStyles.textContainer}>
-                      <Text style={item.side == 'left' ? flattenedStyles.leftText : flattenedStyles.rightText}>
-                        {item.me}
+                    <View style={ message[item].sender == auth().currentUser.displayName ? stylesLeft.container : flattenedStyles.container}>
+                    <View style={ message[item].sender == auth().currentUser.displayName ? stylesLeft.textContainer : flattenedStyles.textContainer}>
+                      <Text style={ message[item].sender == auth().currentUser.displayName ? flattenedStyles.leftText : flattenedStyles.rightText}>
+                        { message[item].message }
                       </Text>
                     </View>
-                  </View>
+                    </View>
                   )
                 }}
               />
