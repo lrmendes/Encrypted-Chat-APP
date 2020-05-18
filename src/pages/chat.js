@@ -1,7 +1,9 @@
 import React, { Component, useState, useEffect, useCallback } from 'react';
 import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
-import { View, Text, StyleSheet, FlatList, TextInput, Button } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, ActivityIndicator, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import RNCryptor from 'react-native-rncryptor';
 
 
@@ -17,27 +19,56 @@ export default function Chat({route, navigation}) {
   const [text, setText] = useState("");
   const [data, setData] = useState([]);
 
+  const [showCrypto, setShowCrypto] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
+  async function decryptMessages(messages) {
+    console.log("Descritou");
+    await Promise.all(Object.keys(messages).map( async (item) => {
+      await RNCryptor.decrypt(messages[item].message, 'password').then((plaintext) => {
+        //setMessage({...message, [message[item]]: {...message[item], message: plaintext } });
+        console.log("\n", messages[item].message, " => ", plaintext);
+        messages[item].message = plaintext;
+        //setMessage( {...message, [message[item].message]: plaintext } );
+      }).catch((error) => {
+        console.log("\n",error);
+      })
+    })).then( () => {
+      setMessage(messages);
+      setData(Object.keys(messages));
+      return;
+    });
+  }
+
   useEffect(() => {
     try {
         database()
         .ref(`/messages/${order[0]}_${order[1]}`)
         .on('value', snapshot => {
             if (snapshot.val() != null) {
-                setMessage(snapshot.val());
-                setData(Object.keys(snapshot.val()));
+
+                if (showCrypto) {
+                  setMessage(snapshot.val());
+                  setData(Object.keys(snapshot.val()));  
+                } else {
+                  decryptMessages(snapshot.val());
+                }
+                
+
                 //console.log('\n\nMessage list: ', snapshot.val());
                 //database().ref(`/messages/${auth().currentUser.displayName}/${user.name}`).set(null);
           }});
     } catch (erorr) {
         console.log("\nErro ao obter usuarios online");
     }
-  }, [auth().currentUser.displayName]);
+  }, [showCrypto]);
 
   function sendMessage() {
     if (text != "" && text != null) {
+      setIsSending(true);
       let encrypted = text;
       RNCryptor.encrypt(text, 'password').then((encryptedbase64)=>{
-        ///encrypted = encryptedbase64;
+        encrypted = encryptedbase64;
 
         // UserMsg
         database()
@@ -45,6 +76,7 @@ export default function Chat({route, navigation}) {
         .push({ sender: auth().currentUser.uid , message: encrypted}).then( () => {
               //console.log("Mensagem enviada: ", { sender: auth().currentUser.displayName , message: text});
               setText("");
+              setIsSending(false);
             })
       });
     }
@@ -60,7 +92,6 @@ export default function Chat({route, navigation}) {
                   return item
                 }}
                 renderItem={function ({ item }) {
-                  //console.log( "User: ",auth().currentUser.displayName, " - ", message);
                   return (
                     <View style={ message[item].sender != auth().currentUser.uid ? stylesLeft.container : flattenedStyles.container}>
                     <View style={ message[item].sender != auth().currentUser.uid ? stylesLeft.textContainer : flattenedStyles.textContainer}>
@@ -68,7 +99,6 @@ export default function Chat({route, navigation}) {
                         ? null 
                         : <Text style={ message[item].sender == auth().currentUser.uid ? flattenedStyles.leftTextBold : flattenedStyles.rightTextBold}> { user.name }: </Text>
                         }
-
                       <Text style={ message[item].sender != auth().currentUser.uid ? flattenedStyles.leftText : flattenedStyles.rightText}>
                         { message[item].message }
                       </Text>
@@ -82,10 +112,18 @@ export default function Chat({route, navigation}) {
             <View style={styles.inputContainer}>
 
             <View style={stylesInput.container}>
+              <TouchableOpacity style={styles.rowBtn} onPress={() => setShowCrypto(!showCrypto)}>
+                <Icon name={showCrypto ? "eye" : "lock-outline" } size={30} color={showCrypto ? '#000000' : '#006400' } />
+              </TouchableOpacity>
               <View style={stylesInput.inputContainer}>
-                  <TextInput style={stylesInput.input} value={text} onChangeText={(e) => setText(e)} placeholder="Write you message" />
+                  <TextInput editable={!isSending} style={stylesInput.input} value={text} onChangeText={(e) => setText(e)} placeholder="Write you message" />
               </View>
-              <Button title="Send" onPress={sendMessage} />
+              <TouchableOpacity onPress={sendMessage} style={styles.sendBtn} disable={isSending} >
+                {isSending 
+                        ? <ActivityIndicator size="small" color='rgba(255, 255, 255, 1)' /> 
+                        : <Text style = {styles.sendText}>Send</Text>
+                }
+              </TouchableOpacity>
             </View>
 
             </View>
@@ -96,17 +134,35 @@ export default function Chat({route, navigation}) {
 const styles = StyleSheet.create({
     messagesContainer: {
         height: '100%',
-        paddingBottom: 100
+        paddingBottom: 70
       },
       inputContainer: {
         width: '100%',
-        height: 100,
+        height: 60,
         position: 'absolute',
         bottom: 0,
         paddingVertical: 10,
-        paddingLeft: 20,
+        paddingLeft: 10,
         borderTopWidth: 1,
         borderTopColor: '#B4B4B4'
+      },
+      sendBtn: {
+        backgroundColor: '#000000',
+        color: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#000000',
+        borderRadius: 3,
+        padding: 9,
+      },
+      sendText: {
+        color: '#ffffff'
+      },
+      rowBtn: {
+        padding: 3,
+        borderColor: 'rgba(0,0,0,0.2)',
+        backgroundColor: 'rgba(0,0,0,0.1)',
+        borderWidth: 1,
+        borderRadius: 5
       }
 });
 
@@ -133,7 +189,7 @@ const stylesInput = StyleSheet.create({
 const stylesLeft = StyleSheet.create({
     container: {
       width: '100%',
-      paddingVertical: 3,
+      paddingVertical: 4,
       paddingHorizontal: 10,
       flexDirection: 'row',
       alignItems: 'center',
