@@ -23,8 +23,6 @@ export default function Chat({route, navigation}) {
   const [text, setText] = useState("");
   const [data, setData] = useState([]);
 
-  const [refresh, setRefresh] = useState(false);
-
   const [showCrypto, setShowCrypto] = useState(false);
   const [isSending, setIsSending] = useState(false);
   
@@ -40,8 +38,7 @@ export default function Chat({route, navigation}) {
         
         console.log("\nAchou: ",messages.message);
         
-        messageList.unshift(messages);
-        setMessageList(messageList);
+        messageList.push(messages);
         
         setIsLoading(false);
         
@@ -59,9 +56,7 @@ export default function Chat({route, navigation}) {
         .on('child_added', snapshot => {
             if (snapshot.val() != null) {
               //console.log("\n Chegou: ",snapshot.val(),"\n------------------");
-              setIsLoading(true);
               decryptMessages(snapshot.val());
-              setRefresh(!refresh);
           }});
     } catch (erorr) {
         console.log("\nErro ao obter usuarios online");
@@ -91,11 +86,10 @@ export default function Chat({route, navigation}) {
             <View>
             <View style={styles.messagesContainer}>
               <FlatList
-                inverted
                 data={messageList}
-                extraData={isLoading}
                 keyExtractor={ (item, index) => {
-                  return index.toString();
+                  //console.log("\nIndice: ",index);
+                  return index
                 }}
                 renderItem={function ({ item }) {
                   //console.log("\nMsg Item: ",item);
@@ -119,8 +113,11 @@ export default function Chat({route, navigation}) {
             <View style={styles.inputContainer}>
 
             <View style={stylesInput.container}>
-              <TouchableOpacity style={styles.rowBtn} onPress={() => { setShowCrypto(!showCrypto) } }>
-                <Icon name={showCrypto ? "eye" : "lock-outline" } size={30} />
+              <TouchableOpacity style={styles.rowBtn} disable={isLoading} onPress={() => { setShowCrypto(!showCrypto) } }>
+                {isLoading 
+                        ? <ActivityIndicator size="small" color='rgba(0, 0, 0, 1)' /> 
+                        : <Icon name={showCrypto ? "eye" : "lock-outline" } size={30} />
+                }
               </TouchableOpacity>
               <View style={stylesInput.inputContainer}>
                   <TextInput editable={!isSending} style={stylesInput.input} value={text} onChangeText={(e) => setText(e)} placeholder="Write you message" />
