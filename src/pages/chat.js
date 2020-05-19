@@ -21,21 +21,26 @@ export default function Chat({route, navigation}) {
 
   const [showCrypto, setShowCrypto] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  
+  const [isLoading, setIsLoading] = useState(false);
 
   async function decryptMessages(messages) {
     console.log("Descritou");
     await Promise.all(Object.keys(messages).map( async (item) => {
       await RNCryptor.decrypt(messages[item].message, 'password').then((plaintext) => {
         //setMessage({...message, [message[item]]: {...message[item], message: plaintext } });
-        console.log("\n", messages[item].message, " => ", plaintext);
+        
+        messages[item]["encryptedMessage"] = messages[item].message
         messages[item].message = plaintext;
         //setMessage( {...message, [message[item].message]: plaintext } );
+        console.log("\n Mensagem: ", messages[item]);
       }).catch((error) => {
         console.log("\n",error);
       })
     })).then( () => {
       setMessage(messages);
       setData(Object.keys(messages));
+      setIsLoading(false);
       return;
     });
   }
@@ -46,22 +51,12 @@ export default function Chat({route, navigation}) {
         .ref(`/messages/${order[0]}_${order[1]}`)
         .on('value', snapshot => {
             if (snapshot.val() != null) {
-
-                if (showCrypto) {
-                  setMessage(snapshot.val());
-                  setData(Object.keys(snapshot.val()));  
-                } else {
-                  decryptMessages(snapshot.val());
-                }
-                
-
-                //console.log('\n\nMessage list: ', snapshot.val());
-                //database().ref(`/messages/${auth().currentUser.displayName}/${user.name}`).set(null);
+              decryptMessages(snapshot.val());
           }});
     } catch (erorr) {
         console.log("\nErro ao obter usuarios online");
     }
-  }, [showCrypto]);
+  }, [auth().currentUser.uid]);
 
   function sendMessage() {
     if (text != "" && text != null) {
@@ -100,7 +95,7 @@ export default function Chat({route, navigation}) {
                         : <Text style={ message[item].sender == auth().currentUser.uid ? flattenedStyles.leftTextBold : flattenedStyles.rightTextBold}> { user.name }: </Text>
                         }
                       <Text style={ message[item].sender != auth().currentUser.uid ? flattenedStyles.leftText : flattenedStyles.rightText}>
-                        { message[item].message }
+                        { !showCrypto ? message[item].message : message[item].encryptedMessage }
                       </Text>
                     </View>
                     </View>
@@ -112,8 +107,11 @@ export default function Chat({route, navigation}) {
             <View style={styles.inputContainer}>
 
             <View style={stylesInput.container}>
-              <TouchableOpacity style={styles.rowBtn} onPress={() => setShowCrypto(!showCrypto)}>
-                <Icon name={showCrypto ? "eye" : "lock-outline" } size={30} color={showCrypto ? '#000000' : '#006400' } />
+              <TouchableOpacity style={styles.rowBtn} disable={isLoading} onPress={() => { setShowCrypto(!showCrypto) } }>
+                {isLoading 
+                        ? <ActivityIndicator size="small" color='rgba(0, 0, 0, 1)' /> 
+                        : <Icon name={showCrypto ? "eye" : "lock-outline" } size={30} />
+                }
               </TouchableOpacity>
               <View style={stylesInput.inputContainer}>
                   <TextInput editable={!isSending} style={stylesInput.input} value={text} onChangeText={(e) => setText(e)} placeholder="Write you message" />
